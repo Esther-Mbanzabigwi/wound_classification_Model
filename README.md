@@ -1,10 +1,10 @@
-# F-C-Section Wound Classification App
+# C-Section Wound Classification App
 
 ## Description
 This project is a comprehensive wound classification system that combines a mobile application with advanced deep learning capabilities. The app allows medical professionals to capture or upload wound images and receive instant classifications of wound types (venous, diabetic, pressure, and surgical) using a trained deep learning model.
 
 ## GitHub Repository
-[Link to GitHub Repository](https://github.com/yourusername/F-c-section)
+[Link to GitHub Repository](https://github.com/Esther-Mbanzabigwi/wound_classification_Model.git)
 
 ## Environment Setup
 
