@@ -10,6 +10,7 @@ torchvision==0.17.2
 # Image processing
 pillow==11.3.0
 opencv-python==4.7.0.72
+aiofiles==0.7.0
 
 # Data processing and scientific computing
 numpy==1.24.4
