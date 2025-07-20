@@ -228,6 +228,17 @@ async def predict_image(file: UploadFile = File(...)):
 
         return {"error": str(e), "traceback": traceback.format_exc()}
 
+
+@app.get("/health")
+async def health_check():
+    """
+    Health check endpoint for Docker and monitoring
+    """
+    return {"status": "healthy", "model_loaded": True, "device": str(device)}
+
+
+@app.get("/api-info")
+async def api_info():
     """
     Get information about available endpoints and how to use them.
     Returns:
