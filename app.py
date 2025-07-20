@@ -166,7 +166,7 @@ async def read_root(request: Request):
         return HTMLResponse(content=f"Error: {str(e)}", status_code=500)
 
 
-@app.post("/predict/")
+@app.post("/predict")
 async def predict_image(file: UploadFile = File(...)):
     try:
         # Read and preprocess the image
