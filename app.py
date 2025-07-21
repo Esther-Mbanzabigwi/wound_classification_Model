@@ -285,4 +285,4 @@ if __name__ == "__main__":
     TEMPLATES_DIR = Path("templates")
     print("Make sure your phone is connected to the same WiFi network!")
 
-    uvicorn.run(app, host="0.0.0.0", port=8502)
+    uvicorn.run(app, host="0.0.0.0", port=8501)

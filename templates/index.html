@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wound Classification</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+            text-align: center;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 2.5rem;
+            font-weight: 700;
+        }
+
+        .upload-area {
+            border: 3px dashed #ddd;
+            border-radius: 15px;
+            padding: 40px 20px;
+            margin: 20px 0;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: #f8f9fa;
+        }
+
+        .upload-area:hover {
+            border-color: #667eea;
+            background: #f0f2ff;
+        }
+
+        .upload-area.dragover {
+            border-color: #667eea;
+            background: #e8f0ff;
+        }
+
+        .upload-icon {
+            font-size: 3rem;
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+
+        .upload-text {
+            color: #666;
+            font-size: 1.1rem;
+            margin-bottom: 10px;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 10px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .preview {
+            margin: 20px 0;
+            display: none;
+        }
+
+        .preview img {
+            max-width: 100%;
+            max-height: 300px;
+            border-radius: 10px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+
+        .result {
+            margin-top: 30px;
+            display: none;
+        }
+
+        .result-card {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            margin: 15px 0;
+            border-left: 5px solid #667eea;
+        }
+
+        .urgency-high {
+            border-left-color: #dc3545;
+            background: #fff5f5;
+        }
+
+        .urgency-medium {
+            border-left-color: #ffc107;
+            background: #fffbf0;
+        }
+
+        .urgency-low {
+            border-left-color: #28a745;
+            background: #f0fff4;
+        }
+
+        .prediction {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .confidence {
+            color: #666;
+            font-size: 1rem;
+            margin-bottom: 15px;
+        }
+
+        .urgency {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+
+        .urgency-high .urgency {
+            background: #dc3545;
+            color: white;
+        }
+
+        .urgency-medium .urgency {
+            background: #ffc107;
+            color: #333;
+        }
+
+        .urgency-low .urgency {
+            background: #28a745;
+            color: white;
+        }
+
+        .recommendations {
+            text-align: left;
+        }
+
+        .recommendations h4 {
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .recommendations ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .recommendations li {
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+            color: #555;
+        }
+
+        .recommendations li:last-child {
+            border-bottom: none;
+        }
+
+        .loading {
+            display: none;
+            margin: 20px 0;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error {
+            background: #fff5f5;
+            border: 1px solid #fed7d7;
+            color: #c53030;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+            display: none;
+        }
+
+        .probabilities {
+            margin-top: 20px;
+            text-align: left;
+        }
+
+        .probabilities h4 {
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .prob-bar {
+            background: #e9ecef;
+            border-radius: 10px;
+            height: 20px;
+            margin: 8px 0;
+            overflow: hidden;
+        }
+
+        .prob-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            border-radius: 10px;
+            transition: width 0.3s ease;
+        }
+
+        .prob-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            font-size: 0.9rem;
+        }
+
+        .prob-value {
+            font-weight: 600;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Wound Classification</h1>
+        
+        <div class="upload-area" id="uploadArea">
+            <div class="upload-icon">📷</div>
+            <div class="upload-text">Click or drag image here</div>
+            <div style="color: #999; font-size: 0.9rem;">Supports JPG, PNG</div>
+        </div>
+        
+        <input type="file" id="fileInput" class="file-input" accept="image/*">
+        
+        <button class="btn" id="analyzeBtn" disabled>Analyze Wound</button>
+        
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p style="margin-top: 10px; color: #666;">Analyzing image...</p>
+        </div>
+        
+        <div class="error" id="error"></div>
+        
+        <div class="preview" id="preview">
+            <img id="previewImg" alt="Preview">
+        </div>
+        
+        <div class="result" id="result">
+            <div class="result-card" id="resultCard">
+                <div class="prediction" id="prediction"></div>
+                <div class="confidence" id="confidence"></div>
+                <div class="urgency" id="urgency"></div>
+                
+                <div class="recommendations">
+                    <h4>Recommendations:</h4>
+                    <ul id="recommendationsList"></ul>
+                </div>
+                
+                <div class="probabilities">
+                    <h4>Confidence Breakdown:</h4>
+                    <div id="probabilitiesList"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const analyzeBtn = document.getElementById('analyzeBtn');
+        const loading = document.getElementById('loading');
+        const error = document.getElementById('error');
+        const preview = document.getElementById('preview');
+        const previewImg = document.getElementById('previewImg');
+        const result = document.getElementById('result');
+        const resultCard = document.getElementById('resultCard');
+        const prediction = document.getElementById('prediction');
+        const confidence = document.getElementById('confidence');
+        const urgency = document.getElementById('urgency');
+        const recommendationsList = document.getElementById('recommendationsList');
+        const probabilitiesList = document.getElementById('probabilitiesList');
+
+        // Drag and drop functionality
+        uploadArea.addEventListener('click', () => fileInput.click());
+        
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+        
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+        
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleFile(files[0]);
+            }
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                handleFile(e.target.files[0]);
+            }
+        });
+
+        function handleFile(file) {
+            if (!file.type.startsWith('image/')) {
+                showError('Please select an image file.');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                previewImg.src = e.target.result;
+                preview.style.display = 'block';
+                analyzeBtn.disabled = false;
+                hideError();
+                result.style.display = 'none';
+            };
+            reader.readAsDataURL(file);
+        }
+
+        analyzeBtn.addEventListener('click', async () => {
+            const file = fileInput.files[0];
+            if (!file) return;
+
+            loading.style.display = 'block';
+            analyzeBtn.disabled = true;
+            hideError();
+            result.style.display = 'none';
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            try {
+                const response = await fetch('/predict', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+
+                displayResult(data);
+            } catch (err) {
+                showError('Analysis failed: ' + err.message);
+            } finally {
+                loading.style.display = 'none';
+                analyzeBtn.disabled = false;
+            }
+        });
+
+        function displayResult(data) {
+            prediction.textContent = data.predicted_class;
+            confidence.textContent = `Confidence: ${(data.confidence * 100).toFixed(1)}%`;
+            urgency.textContent = data.urgency_level;
+
+            // Set urgency class
+            resultCard.className = 'result-card';
+            if (data.urgency_level === 'HIGH') {
+                resultCard.classList.add('urgency-high');
+            } else if (data.urgency_level === 'MEDIUM') {
+                resultCard.classList.add('urgency-medium');
+            } else {
+                resultCard.classList.add('urgency-low');
+            }
+
+            // Display recommendations
+            recommendationsList.innerHTML = '';
+            data.recommendations.forEach(rec => {
+                const li = document.createElement('li');
+                li.textContent = rec;
+                recommendationsList.appendChild(li);
+            });
+
+            // Display probabilities
+            probabilitiesList.innerHTML = '';
+            Object.entries(data.class_probabilities).forEach(([label, prob]) => {
+                const probDiv = document.createElement('div');
+                probDiv.innerHTML = `
+                    <div class="prob-label">
+                        <span>${label}</span>
+                        <span class="prob-value">${(prob * 100).toFixed(1)}%</span>
+                    </div>
+                    <div class="prob-bar">
+                        <div class="prob-fill" style="width: ${prob * 100}%"></div>
+                    </div>
+                `;
+                probabilitiesList.appendChild(probDiv);
+            });
+
+            result.style.display = 'block';
+        }
+
+        function showError(message) {
+            error.textContent = message;
+            error.style.display = 'block';
+        }
+
+        function hideError() {
+            error.style.display = 'none';
+        }
+    </script>
+</body>
+</html> 
