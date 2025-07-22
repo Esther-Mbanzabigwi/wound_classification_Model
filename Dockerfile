@@ -14,7 +14,6 @@ RUN apt-get update && apt-get install -y \
     libxext6 \
     libxrender-dev \
     libgomp1 \
-    curl \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy requirements first for better caching
@@ -26,7 +25,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy application code
 COPY app.py .
 COPY model/ ./model/
-COPY templates/ ./templates/
+
+# Create templates directory and copy templates if they exist
+RUN mkdir -p templates
 
 # Expose port
 EXPOSE 8080

@@ -136,32 +136,12 @@ class ImprovedWoundClassifier(nn.Module):
         return x
 
 
-# Load model with error handling
-try:
-    model = ImprovedWoundClassifier()
-    model.to(device)
-    
-    # Check if model file exists
-    model_path = "model/model.pth"
-    if not os.path.exists(model_path):
-        raise FileNotFoundError(f"Model file not found at {model_path}")
-    
-    checkpoint = torch.load(model_path, map_location=device)
-    
-    # Handle different checkpoint formats
-    if "model_state_dict" in checkpoint:
-        model.load_state_dict(checkpoint["model_state_dict"])
-    elif "state_dict" in checkpoint:
-        model.load_state_dict(checkpoint["state_dict"])
-    else:
-        model.load_state_dict(checkpoint)
-    
-    model.eval()
-    print(f"✅ Model loaded successfully on {device}")
-    
-except Exception as e:
-    print(f"❌ Error loading model: {str(e)}")
-    raise e
+# Load model
+model = ImprovedWoundClassifier()
+model.to(device)
+checkpoint = torch.load("model/model.pth", map_location=device)
+model.load_state_dict(checkpoint["model_state_dict"])
+model.eval()
 
 # Image preprocessing
 transform = transforms.Compose(
@@ -234,11 +214,18 @@ async def predict_image(file: UploadFile = File(...)):
                 "original_image_size": original_size,
                 "model_device": str(device),
                 "input_tensor_shape": list(image_tensor.shape),
+                "input_tensor_range": {
+                    "min": float(image_tensor.min()),
+                    "max": float(image_tensor.max()),
+                    "mean": float(image_tensor.mean()),
+                    "std": float(image_tensor.std()),
+                },
             },
         }
 
     except Exception as e:
         import traceback
+
         return {"error": str(e), "traceback": traceback.format_exc()}
 
 
@@ -248,8 +235,6 @@ async def health_check():
     Health check endpoint for Docker and monitoring
     """
     return {"status": "healthy", "model_loaded": True, "device": str(device)}
-
-
 
 
 @app.get("/api-info")
@@ -300,4 +285,4 @@ if __name__ == "__main__":
     TEMPLATES_DIR = Path("templates")
     print("Make sure your phone is connected to the same WiFi network!")
 
-    uvicorn.run(app, host="0.0.0.0", port=8501)
+    uvicorn.run(app, host="0.0.0.0", port=8502)
